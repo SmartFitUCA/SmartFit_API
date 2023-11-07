@@ -1,10 +1,14 @@
 <?php
-
 declare(strict_types=1);
+require "gateway/user_gateway.php";
+require "database_con.php";
+require "token.php";
 
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\App;
+use gateway\UserGateway;
+use Config\Token;
 
 return function (App $app) {
 
@@ -16,43 +20,66 @@ return function (App $app) {
     #### ACCOUNT ####
     // Create User 
     $app->post('/user', function (Request $req, Response $res) {
-        $res->getBody()->write('/user');
+        $req_body = $req->getParsedBody();
+        $res->getBody()->write(json_encode((new UserGateway)->createUser($req_body['mail'], $req_body['password'], $req_body['user'])));
         return $res;
     });
 
     // Delete User 
     $app->delete('/user', function (Request $req, Response $res) {
         $token = $req->getHeader('Authorization')[0];
-        
-        $res->getBody()->write('/user/' . $token);
-        return $res;
+        $uuid = (new Token)->getUuidFromToken($token);
+        $code = (new UserGateway)->deleteUser($uuid);
+
+        switch($code) {
+            case  0:
+                return $res->withStatus(200);
+            case -1:
+                return $res->withStatus(401);
+            case -2:
+                return $res->withStatus(404);
+        }
+        return $res->withStatus(500);
     });
 
     // Get Token
-    $app->get('/user/{uuid}/{hash}/token', function (Request $req, Response $res, $args) {
-        $uuid = $args['uuid'];
+    $app->get('/user/login/{mail}/{hash}', function (Request $req, Response $res, $args) {
+        $mail = $args['mail'];
         $hash = $args['hash'];
         
-        $res->getBody()->write('/user/' . $uuid . '/' . $hash);
+        $value = (new UserGateway)->login($mail, $hash);
+        // If error statusCode else token
+        if($value instanceOf int) {
+            return $res->withStatus($value);
+        }
+        $res->getBody()->write($value);
         return $res;
     });
 
     // Update Mail
     $app->put('/user/mail', function(Request $req, Response $res) {
         $token = $req->getHeader('Authorization')[0];
-        $mail = $req->getParsedBody()['mail'];
-
-        $res->getBody()->write('/user/mail mail:'.$mail.' Auth:'.$token);
-        return $res; 
+        $new_mail = $req->getParsedBody()['mail'];
+        if(!(new Token)->verifyToken($token)) {
+            return $res->withStatus(401);
+        }
+        
+        $uuid = (new Token)->getUuidFromToken($token);
+        (new UserGateway)->updateMail($uuid, $new_mail);
+        return $res->withStatus(200); 
     });
 
     // Update Username
     $app->put('/user/username', function(Request $req, Response $res) {
         $token = $req->getHeader('Authorization')[0];
-        $username = $req->getParsedBody()['username'];
-
-        $res->getBody()->write('/user/username username:'.$username.' Auth:'.$token);
-        return $res; 
+        $new_username = $req->getParsedBody()['username'];
+        if(!(new Token)->verifyToken($token)) {
+            return $res->withStatus(401);
+        }
+        
+        $uuid = (new Token)->getUuidFromToken($token);
+        (new UserGateway)->updateUsername($uuid, $new_username);
+        return $res->withStatus(200);
     });
 
     #### FILES ####
@@ -89,5 +116,4 @@ return function (App $app) {
         $res->getBody()->write('/user/files'.' Auth:'.$token);
         return $res;
     });
-
 };
