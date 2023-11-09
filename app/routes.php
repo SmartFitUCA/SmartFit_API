@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require "gateway/user_gateway.php";
+require "gateway/file_gateway.php";
 require "database_con.php";
 require "token.php";
 
@@ -9,6 +10,7 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\App;
 use gateway\UserGateway;
 use Config\Token;
+use Gateway\FileGateway;
 
 return function (App $app) {
 
@@ -21,13 +23,23 @@ return function (App $app) {
     // Create User 
     $app->post('/user', function (Request $req, Response $res) {
         $req_body = $req->getParsedBody();
-        $res->getBody()->write(json_encode((new UserGateway)->createUser($req_body['mail'], $req_body['password'], $req_body['user'])));
+        if(!array_key_exists('email',$req_body) || !array_key_exists('hash', $req_body) || !array_key_exists('username', $req_body)) {
+            return $res->withStatus(400);
+        }
+        $code = (new UserGateway)->createUser($req_body['email'], $req_body['hash'], $req_body['username']);
+        if($code === -1) return $res->withStatus(409);
+        
+        $res->getBody()->write(json_encode($code));
         return $res;
     });
 
     // Delete User 
     $app->delete('/user', function (Request $req, Response $res) {
         $token = $req->getHeader('Authorization')[0];
+        if(!(new Token)->verifyToken($token)) {
+            return $res->withStatus(401);
+        }
+                
         $uuid = (new Token)->getUuidFromToken($token);
         $code = (new UserGateway)->deleteUser($uuid);
 
@@ -35,85 +47,158 @@ return function (App $app) {
             case  0:
                 return $res->withStatus(200);
             case -1:
-                return $res->withStatus(401);
-            case -2:
                 return $res->withStatus(404);
         }
         return $res->withStatus(500);
     });
 
     // Get Token
-    $app->get('/user/login/{mail}/{hash}', function (Request $req, Response $res, $args) {
-        $mail = $args['mail'];
+    $app->get('/user/login/{email}/{hash}', function (Request $req, Response $res, $args) {
+        $email = $args['email'];
         $hash = $args['hash'];
         
-        $value = (new UserGateway)->login($mail, $hash);
-        // If error statusCode else token
-        if($value instanceOf int) {
-            return $res->withStatus($value);
+        $value = (new UserGateway)->login($email, $hash);
+        switch($value) {
+            case -1:
+                return $res->withStatus(404);
+            case -2:
+                return $res->withStatus(401);
+            case -3:
+                return $res->withStatus(500);
         }
+
         $res->getBody()->write($value);
         return $res;
     });
 
     // Update Mail
-    $app->put('/user/mail', function(Request $req, Response $res) {
+    $app->put('/user/email', function(Request $req, Response $res) {
         $token = $req->getHeader('Authorization')[0];
-        $new_mail = $req->getParsedBody()['mail'];
         if(!(new Token)->verifyToken($token)) {
             return $res->withStatus(401);
         }
         
+        $body = $req->getParsedBody();
+        if(!isset($body['email'])) {                        
+            return $res->withStatus(400);
+        }    
+        $new_email = $req->getParsedBody()['email'];
+        
         $uuid = (new Token)->getUuidFromToken($token);
-        (new UserGateway)->updateMail($uuid, $new_mail);
+        $code = (new UserGateway)->updateMail($uuid, $new_email);
+        if($code === -1) return $res->withStatus(500);
         return $res->withStatus(200); 
     });
 
     // Update Username
     $app->put('/user/username', function(Request $req, Response $res) {
         $token = $req->getHeader('Authorization')[0];
+        if(!(new Token)->verifyToken($token)){
+            return $res->withStatus(401);
+        }
+        $body = $req->getParsedBody();
+        if(!isset($body['username'])) {
+            return $res->withStatus(400);
+        }
         $new_username = $req->getParsedBody()['username'];
+        
+        
+        $uuid = (new Token)->getUuidFromToken($token);
+        $code = (new UserGateway)->updateUsername($uuid, $new_username);
+        if($code === -1) return $res->withStatus(500);
+        return $res->withStatus(200);
+    });
+
+    #### FILES ####
+    // Get list of files     
+    $app->get('/user/files', function (Request $req, Response $res) {
+        $token = $req->getHeader('Authorization')[0];
+        $save_folder = '/home/hel/smartfit_hdd';
         if(!(new Token)->verifyToken($token)) {
             return $res->withStatus(401);
         }
         
         $uuid = (new Token)->getUuidFromToken($token);
-        (new UserGateway)->updateUsername($uuid, $new_username);
-        return $res->withStatus(200);
-    });
-
-    #### FILES ####
-    // Get list of files 
-    $app->get('/user/files', function (Request $req, Response $res) {
-        $token = $req->getHeader('Authorization')[0];
-        
-        $res->getBody()->write('/user/files' . ' Auth:' . $token);
+        $code = (new FileGateway)->listFiles($uuid);
+        if($code === -1) return $res->withStatus(500);
+        $res->getBody()->write(json_encode($code));
         return $res;
     });
 
-    // Get file 
+    // Get file
     $app->get('/user/files/{uuid}', function (Request $req, Response $res, $args) {
         $token = $req->getHeader('Authorization')[0];
-        $uuid = $args['uuid'];
+        $file_uuid = $args['uuid'];
+        $save_folder = '/home/hel/smartfit_hdd';
+        if(!(new Token)->verifyToken($token)) {
+            return $res->withStatus(401);
+        }
         
-        $res->getBody()->write('/user/files/'.$uuid.' Auth:'.$token);
+        $user_uuid = (new Token)->getUuidFromToken($token);
+        $filename = (new FileGateway)->getFilename($file_uuid, $user_uuid);
+        switch($filename) {
+            case -1:
+                return $res->withStatus(500);
+            case -2:
+                return $res->withStatus(404);
+        }
+        
+        $download_file = fopen($save_folder.'/'.$user_uuid.'/'.$filename, 'r');
+        $res->getBody()->write(fread($download_file, (int)fstat($download_file)['size']));
         return $res;
     });
     
     // Delete file
     $app->delete('/user/files/{uuid}', function (Request $req, Response $res, $args) {
         $token = $req->getHeader('Authorization')[0];
-        $uuid = $args['uuid'];
+        $file_uuid = $args['uuid'];
+        $save_folder = '/home/hel/smartfit_hdd';
+        if(!(new Token)->verifyToken($token)) {
+            return $res->withStatus(401);
+        }
+        
+        $user_uuid = (new Token)->getUuidFromToken($token);
+        $filename = (new FileGateway)->getFilename($file_uuid, $user_uuid);
+        switch($filename) {
+            case -1:
+                return $res->withStatus(500);
+            case -2:
+                return $res->withStatus(404);
+        }
+        $code = (new FileGateway)->deleteFile($file_uuid, $user_uuid);
+        if($code === -1) return $res->withStatus(500);
 
-        $res->getBody()->write('/user/files/'.$uuid.' Auth:'.$token);
-        return $res;
-    });
-    
-    // Upload file 
+        $file_path = $save_folder.'/'.$user_uuid.'/'.$filename;
+        if(file_exists($file_path)) {
+            unlink($file_path);
+        }
+        
+        return $res->withStatus(200);
+    });    
+        
+    // Upload file
+    #file_put_contents("test_save_upload.bin", $file->getStream()->getContents());
     $app->post('/user/files', function (Request $req, Response $res) {
         $token = $req->getHeader('Authorization')[0];
+        $save_folder = '/home/hel/smartfit_hdd';
+        if(!(new Token)->verifyToken($token)) {
+            return $res->withStatus(401);
+        }
         
-        $res->getBody()->write('/user/files'.' Auth:'.$token);
-        return $res;
+        $uuid = (new Token)->getUuidFromToken($token);
+        $file = $req->getUploadedFiles()['file'];
+        $filename = $file->getClientFilename();
+        $code = (new FileGateway)->listFiles($uuid);
+        if(in_array($filename, $code, false)) return $res->withStatus(409);
+        
+        $file_save_folder = $save_folder.'/'.$uuid.'/';
+        if(!is_dir($file_save_folder)) {
+            mkdir($file_save_folder, 0777, false);
+        }   
+        $file->moveTo($file_save_folder.'/'.$filename);
+        
+        $code = (new FileGateway)->createFile($filename, $uuid);
+        if($code === -1) return $res->withStatus(500);
+        return $res->withStatus(200);
     });
 };
