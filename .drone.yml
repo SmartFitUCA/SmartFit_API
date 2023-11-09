@@ -26,12 +26,12 @@ steps:
       CONTAINERNAME: smartfit_api
       COMMAND: create
       OVERWRITE: true
-      CODEFIRST_CLIENTDRONE_ENV_HOST: SmartFit-smartfit_db
-      CODEFIRST_CLIENTDRONE_ENV_DATABASE:
+      CODEFIRST_CLIENTDRONE_ENV_SMDB_HOST: SmartFit-smartfit_db
+      CODEFIRST_CLIENTDRONE_ENV_SMDB_DATABASE:
         from_secret: db_database
-      CODEFIRST_CLIENTDRONE_ENV_USER:
+      CODEFIRST_CLIENTDRONE_ENV_SMDB_USER:
         from_secret: db_user
-      CODEFIRST_CLIENTDRONE_ENV_PASSWORD:
+      CODEFIRST_CLIENTDRONE_ENV_SMDB_PASSWORD:
         from_secret: db_password
       CODEFIRST_CLIENTDRONE_ENV_ROOT_PASSWORD:
         from_secret: db_root_password
@@ -47,11 +47,11 @@ steps:
       COMMAND: create
       CODEFIRST_CLIENTDRONE_ENV_MARIADB_ROOT_PASSWORD:
         from_secret: db_root_password
-      CODEFIRST_CLIENTDRONE_ENV_MARIADB_DATABASE:
+      CODEFIRST_CLIENTDRONE_ENV_MARIADB_SMDB_DATABASE:
         from_secret: db_database
-      CODEFIRST_CLIENTDRONE_ENV_MARIADB_USER:
+      CODEFIRST_CLIENTDRONE_ENV_MARIADB_SMDB_USER:
         from_secret: db_user
-      CODEFIRST_CLIENTDRONE_ENV_MARIADB_PASSWORD:
+      CODEFIRST_CLIENTDRONE_ENV_MARIADB_SMDB_PASSWORD:
         from_secret: db_password
       ADMINS: remiarnal,enzojolys,othmanebenjelloun
     depends_on: [ deploy_api_image ]
