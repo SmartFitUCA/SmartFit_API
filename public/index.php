@@ -11,7 +11,6 @@ use Slim\Factory\AppFactory;
 use Slim\Factory\ServerRequestCreatorFactory;
 use Config\DatabaseInit;
 require '../app/connection.php';
-require '../app/database_con.php';
 require '../app/database_init.php';
 
 require __DIR__ . '/../vendor/autoload.php';
