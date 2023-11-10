@@ -20,7 +20,7 @@ class DatabaseInit {
     }
 
     private function createUserTable() {
-        $query = 'CREATE TABLE user (
+        $query = 'CREATE TABLE IF NOT EXISTS user (
                     id UUID PRIMARY KEY,
                     email VARCHAR(100) UNIQUE,
                     hash VARCHAR(255),
@@ -31,7 +31,7 @@ class DatabaseInit {
     }
 
     private function createFileTable() {
-        $query = 'CREATE TABLE file (
+        $query = 'CREATE TABLE IF NOT EXISTS file (
                     id UUID PRIMARY KEY,
                     user_id UUID REFERENCES `user`(`id`) ON DELETE CASCADE,
                     filename VARCHAR(100) DEFAULT CURDATE(),
