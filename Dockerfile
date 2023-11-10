@@ -9,4 +9,4 @@ RUN a2enmod rewrite
 RUN a2enmod actions
 RUN service apache2 restart
 RUN mkdir -p /home/hel/smartfit_hdd
-RUN chmod -R 755 /home/hel/smartfit_hdd
+RUN chmod -R 777 /home/hel/smartfit_hdd
