@@ -29,7 +29,7 @@ return function (App $app) {
             return $res->withStatus(400);
         }
         $code = (new UserGateway)->createUser($req_body['email'], $req_body['hash'], $req_body['username']);
-        if($code === -1) return $res->withStatus(500);
+        if($code === -1) return $res->withStatus(409);
         
         $res->getBody()->write(json_encode($code));
         return $res;

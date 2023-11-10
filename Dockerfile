@@ -8,3 +8,5 @@ RUN composer update && composer install
 RUN a2enmod rewrite
 RUN a2enmod actions
 RUN service apache2 restart
+RUN mkdir /home/hel/smartfit_hdd
+RUN chmod 755 /home/hel/smartfit_hdd
