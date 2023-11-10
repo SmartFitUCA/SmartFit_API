@@ -5,9 +5,7 @@ COPY . /var/www/html/
 WORKDIR /var/www/html/
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 RUN composer update && composer install
-RUN php --ini
-RUN sed -i '/upload_max_filesize/s/.*/upload_max_filesize\ = 64M/g' /etc/php/php.ini
-RUN sed -i '/post_max_size/s/.*/post_max_size \= 64M/g' /etc/php/php.ini
+RUN echo "file_uploads = On\nmemory_limit = 64M\nupload_max_filesize = 64M\npost_max_size = 64M\nmax_execution_time = 600\n" > /usr/local/etc/php/conf.d/uploads.ini
 RUN a2enmod rewrite
 RUN a2enmod actions
 RUN service apache2 restart
