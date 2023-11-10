@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
-require "gateway/user_gateway.php";
-require "gateway/file_gateway.php";
-require "database_con.php";
-require "token.php";
+require_once "gateway/user_gateway.php";
+require_once "gateway/file_gateway.php";
+require_once "database_con.php";
+require_once "token.php";
 
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE");
 

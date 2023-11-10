@@ -8,7 +8,7 @@ class DatabaseCon{
     private string $login;
     private string $password;
 
-    function __construct(){
+    public function __construct(){
         if (getenv("SMDB_HOST") == null || getenv("SMDB_DATABASE") == null || getenv("SMDB_USER") == null || getenv("SMDB_PASSWORD") == null){
             throw new PDOException("ENV variables not found");
         }
@@ -17,7 +17,7 @@ class DatabaseCon{
         $this->password = getenv("SMDB_PASSWORD");
     }
 
-    function connect(): int|Connection {
+    public function connect(): int|Connection {
         try {
             $connection = new Connection($this->dsn,$this->login,$this->password);
         } catch (PDOException $e){
