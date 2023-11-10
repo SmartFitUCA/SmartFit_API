@@ -41,7 +41,7 @@ steps:
   - name: deploy_database_image
     image: hub.codefirst.iut.uca.fr/thomas.bellembois/codefirst-dockerproxy-clientdrone:latest
     environment:
-      IMAGENAME: mariadb:11.1.2
+      IMAGENAME: mariadb:10.9
       CONTAINERNAME: smartfit_db
       PRIVATE : true
       COMMAND: create
