@@ -19,6 +19,19 @@ steps:
       password:
         from_secret: cf_password
 
+  - name: sonarqube
+    image: sonarsource/sonar-scanner-cli
+    environment:
+      SONAR_TOKEN:
+        from_secret: sonar_token
+    commands:
+      - sonar-scanner -Dsonar.projectKey=SmartFit_API
+                      -Dsonar.sources=./app/
+                      -Dsonar.inclusions=**/*.php
+                      -Dsonar.login=$${SONAR_TOKEN} 
+                      -Dsonar.language=php 
+                      -Dsonar.host.url=https://codefirst.iut.uca.fr/sonar
+
   - name: deploy_api_image
     image: hub.codefirst.iut.uca.fr/thomas.bellembois/codefirst-dockerproxy-clientdrone:latest
     environment:
