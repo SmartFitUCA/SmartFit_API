@@ -39,14 +39,16 @@ class UserGateway {
 
     // Delete User: (1:OK, 2:Unauthorize, 3:No User)
     public function deleteUser(string $uuid) : int {
-        $query = "DELETE FROM user WHERE id=:uuid;";
+        $query = "DELETE FROM user WHERE id=:uuid RETURNING row_count();";
         try {
             $this->con->executeQuery($query, array(
                 ':uuid' => array($uuid, PDO::PARAM_STR)
             ));
+            $results = $this->con->getResults();
         } catch (PDOException $e) {
-            return -1;
+            return -2;
         }
+        if(count($results) === 0) return -1;
 
         return 0;
     }
@@ -67,6 +69,21 @@ class UserGateway {
         if($hash !== (string) $results[0]['hash']) return -2;
                 
         return json_encode($this->token->getNewJsonToken($results[0]['id'])); 
+    }
+
+    public function getInfo(string $uuid) {
+        $query = "SELECT email, username FROM user WHERE id=:uuid;";
+        try {
+            $this->con->executeQuery($query,array(
+                ':uuid' => array($uuid, PDO::PARAM_STR)
+            ));
+            $results = $this->con->getResults();
+        } catch(PDOException $e) {
+            return -2;
+        }
+        if(count($results) === 0) return -1;
+
+        return ["email" => $results[0]['email'], "username" => $results[0]['username']];
     }
 
     public function updateMail(string $uuid, string $new_email) {

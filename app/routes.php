@@ -50,6 +50,8 @@ return function (App $app) {
                 return $res->withStatus(200);
             case -1:
                 return $res->withStatus(404);
+            case -2:
+                return $res->withStatus(500);
         }
         return $res->withStatus(500);
     });
@@ -70,6 +72,25 @@ return function (App $app) {
         }
 
         $res->getBody()->write($value);
+        return $res;
+    });
+
+    $app->get('/user/info', function(Request $req, Response $res) {
+        $token = $req->getHeader('Authorization')[0];
+        if(!(new Token)->verifyToken($token)) {
+            return $res->withStatus(401);
+        }
+
+        $uuid = (new Token)->getUuidFromToken($token);
+        $code = (new UserGateway)->getInfo($uuid);
+        switch($code) {
+            case -1:
+                return $res->withStatus(404);
+            case -2:
+                return $res->withStatus(500);
+        }
+
+        $res->getBody()->write(json_encode($code));
         return $res;
     });
 
