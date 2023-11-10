@@ -9,10 +9,10 @@ class DatabaseInit {
 
     public function __construct() {
     	if(getenv("IS_DB_INIT") != true) {}
-            try {
+            #try {
                 $this->con = (new DatabaseCon)->connect();
-            } catch(PDOException $e) {
-                throw new PDOException($e->getMessage(), $e->getCode(), $e);
+            #} catch(PDOException $e) {
+             #   throw new PDOException($e->getMessage(), $e->getCode(), $e);
             $this->createUserTable();
             $this->createFileTable();
             putenv("IS_DB_INIT=true");
