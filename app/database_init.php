@@ -8,7 +8,7 @@ class DatabaseInit {
     private Connection $con;
 
     public function __construct() {
-    	if(getenv("IS_DB_INIT") != true) {
+    	if(getenv("IS_DB_INIT") === false) {
             #try {
                 $this->con = (new DatabaseCon)->connect();
             #} catch(PDOException $e) {
