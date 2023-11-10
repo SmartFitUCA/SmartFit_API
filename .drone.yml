@@ -41,18 +41,18 @@ steps:
   - name: deploy_database_image
     image: hub.codefirst.iut.uca.fr/thomas.bellembois/codefirst-dockerproxy-clientdrone:latest
     environment:
-      IMAGENAME: mariadb:10.7
+      IMAGENAME: mariadb:11.1.2
       CONTAINERNAME: smartfit_db
       PRIVATE : true
       COMMAND: create
       OVERWRITE: true
       CODEFIRST_CLIENTDRONE_ENV_MARIADB_ROOT_PASSWORD:
         from_secret: db_root_password
-      CODEFIRST_CLIENTDRONE_ENV_MARIADB_SMDB_DATABASE:
+      CODEFIRST_CLIENTDRONE_ENV_MARIADB_DATABASE:
         from_secret: db_database
-      CODEFIRST_CLIENTDRONE_ENV_MARIADB_SMDB_USER:
+      CODEFIRST_CLIENTDRONE_ENV_MARIADB_USER:
         from_secret: db_user
-      CODEFIRST_CLIENTDRONE_ENV_MARIADB_SMDB_PASSWORD:
+      CODEFIRST_CLIENTDRONE_ENV_MARIADB_PASSWORD:
         from_secret: db_password
       ADMINS: remiarnal,enzojolys,othmanebenjelloun
     depends_on: [ deploy_api_image ]
