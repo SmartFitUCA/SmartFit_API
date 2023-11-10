@@ -21,7 +21,7 @@ class DatabaseInit {
 
     private function createUserTable() {
         $query = 'CREATE TABLE user (
-                    `id` UUID PRIMARY KEY,
+                    id UUID PRIMARY KEY,
                     email VARCHAR(100) UNIQUE,
                     hash VARCHAR(255),
                     username VARCHAR(20) DEFAULT \'Change Me!\',
@@ -33,7 +33,7 @@ class DatabaseInit {
     private function createFileTable() {
         $query = 'CREATE TABLE file (
                     id UUID PRIMARY KEY,
-                    `user_id` UUID REFERENCES `user`(`id`) ON DELETE CASCADE,
+                    user_id UUID REFERENCES `user`(`id`) ON DELETE CASCADE,
                     filename VARCHAR(100) DEFAULT CURDATE(),
                     import_date DATE);';
 
