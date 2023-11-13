@@ -6,7 +6,7 @@ require_once "database_con.php";
 require_once "token.php";
 
 header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Headers: Authorization, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Origin");
+header("Access-Control-Allow-Headers: *");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE");
 
 use Psr\Http\Message\ResponseInterface as Response;
