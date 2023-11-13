@@ -6,7 +6,7 @@ require_once "database_con.php";
 require_once "token.php";
 
 header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Headers: *");
+header("Access-Control-Allow-Headers: X-Requested-With, Content-Type, Accept, Origin, Authorization");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE");
 header("Access-Control-Allow-Credentials: true");
 
