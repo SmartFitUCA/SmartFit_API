@@ -9,6 +9,9 @@ use App\Application\Settings\SettingsInterface;
 use DI\ContainerBuilder;
 use Slim\Factory\AppFactory;
 use Slim\Factory\ServerRequestCreatorFactory;
+use Config\DatabaseInit;
+require '../app/connection.php';
+require '../app/database_init.php';
 
 require __DIR__ . '/../vendor/autoload.php';
 
@@ -75,6 +78,9 @@ $app->addBodyParsingMiddleware();
 // Add Error Middleware
 $errorMiddleware = $app->addErrorMiddleware($displayErrorDetails, $logError, $logErrorDetails);
 $errorMiddleware->setDefaultErrorHandler($errorHandler);
+
+// Create DB
+(new DatabaseInit);
 
 // Run App & Emit Response
 $response = $app->handle($request);

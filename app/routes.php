@@ -1,19 +1,36 @@
 <?php
 declare(strict_types=1);
-require "gateway/user_gateway.php";
-require "gateway/file_gateway.php";
-require "database_con.php";
-require "token.php";
+require_once "gateway/user_gateway.php";
+require_once "gateway/file_gateway.php";
+require_once "database_con.php";
+require_once "token.php";
+
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Headers: Access-Control-Allow-Origin, X-Requested-With, Content-Type, Accept, Origin, Authorization");
+header("Access-Control-Allow-Methods: *");
+header("Access-Control-Allow-Credentials: true");
 
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\App;
+use SLim\Exception\HttpNotFoundException;
 use gateway\UserGateway;
 use Config\Token;
 use Gateway\FileGateway;
 
 return function (App $app) {
+    $app->options('/{routes:.+}', function ($request, $response, $args) {
+        return $response;
+    });
 
+    $app->add(function ($request, $handler) {
+        $response = $handler->handle($request);
+        return $response
+                ->withHeader('Access-Control-Allow-Origin', '*')
+                ->withHeader('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Accept, Origin, Authorization')
+                ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+    });
+    
     $app->get('/', function (Request $req, Response $res) {
         $res->getBody()->write('SmartFit-API is working!');
         return $res;
@@ -48,6 +65,8 @@ return function (App $app) {
                 return $res->withStatus(200);
             case -1:
                 return $res->withStatus(404);
+            case -2:
+                return $res->withStatus(500);
         }
         return $res->withStatus(500);
     });
@@ -68,6 +87,25 @@ return function (App $app) {
         }
 
         $res->getBody()->write($value);
+        return $res;
+    });
+
+    $app->get('/user/info', function(Request $req, Response $res) {
+        $token = $req->getHeader('Authorization')[0];
+        if(!(new Token)->verifyToken($token)) {
+            return $res->withStatus(401);
+        }
+
+        $uuid = (new Token)->getUuidFromToken($token);
+        $code = (new UserGateway)->getInfo($uuid);
+        switch($code) {
+            case -1:
+                return $res->withStatus(404);
+            case -2:
+                return $res->withStatus(500);
+        }
+
+        $res->getBody()->write(json_encode($code));
         return $res;
     });
 
@@ -187,9 +225,12 @@ return function (App $app) {
         
         $uuid = (new Token)->getUuidFromToken($token);
         $file = $req->getUploadedFiles()['file'];
+        $category = $req->getParsedBody()['SmartFit_Category'];
+        $creation_date = $req->getParsedBody()['SmartFit_Date'];
         $filename = $file->getClientFilename();
+        
         $code = (new FileGateway)->listFiles($uuid);
-        if(in_array($filename, $code, false)) return $res->withStatus(409);
+        if(array_search($filename, array_column($code, 'filename'), false) !== false) return $res->withStatus(409);
         
         $file_save_folder = $save_folder.'/'.$uuid.'/';
         if(!is_dir($file_save_folder)) {
@@ -197,8 +238,13 @@ return function (App $app) {
         }   
         $file->moveTo($file_save_folder.'/'.$filename);
         
-        $code = (new FileGateway)->createFile($filename, $uuid);
+        $code = (new FileGateway)->createFile($filename, $uuid, $category, $creation_date);
         if($code === -1) return $res->withStatus(500);
+        
         return $res->withStatus(200);
+    });
+
+    $app->map(['GET', 'POST', 'PUT', 'DELETE', 'PATCH'], '/{routes:.+}', function ($request, $response) {
+        throw new HttpNotFoundException($request);
     });
 };

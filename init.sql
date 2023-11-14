@@ -1,0 +1,35 @@
+CREATE TABLE user (
+    `id` UUID PRIMARY KEY,
+    email VARCHAR(100) UNIQUE,
+    hash VARCHAR(255),
+    username VARCHAR(20) DEFAULT 'Change Me!',
+    creation_date DATE
+);
+
+CREATE TABLE file (
+    id UUID PRIMARY KEY,
+    `user_id` UUID REFERENCES `user`(`id`) ON DELETE CASCADE,
+    filename VARCHAR(100) DEFAULT CURDATE(),
+    import_date DATE,
+);
+
+-- CREATE USER
+INSERT INTO user VALUES (UUID(), MAIL, HASH, USERNAME, CURDATE());
+
+-- DELETE USER
+DELETE FROM user WHERE id=USER_ID;
+
+-- GET FILE LIST
+SELECT id, import_date, title FROM file WHERE user_id=USER_ID;
+
+-- UPLOAD FILE
+INSERT INTO file VALUES (UUID(), USER_ID, TITLE, CURDATE(), DATA);
+
+-- DELETE FILE
+DELETE FROM file WHERE id=ID and USER_ID=USER_ID;
+
+-- UPDATE MAIL
+UPDATE user SET mail=MAIL WHERE id=ID;
+
+-- UPDATE USERNAME
+UPDATE user SET username=USERNAME WHERE id=ID;

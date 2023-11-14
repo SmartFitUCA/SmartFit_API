@@ -1,0 +1,71 @@
+kind: pipeline
+type: docker
+name: smartfit
+
+trigger:
+  event:
+    - push
+
+steps:
+  - name: build_api_image
+    image: plugins/docker
+    settings:
+      dockerfile: Dockerfile
+      context: .
+      registry: hub.codefirst.iut.uca.fr
+      repo: hub.codefirst.iut.uca.fr/remi.arnal/smartfit_api
+      username:
+        from_secret: cf_username
+      password:
+        from_secret: cf_password
+
+  - name: sonarqube
+    image: sonarsource/sonar-scanner-cli
+    environment:
+      SONAR_TOKEN:
+        from_secret: sonar_token
+    commands:
+      - sonar-scanner -Dsonar.projectKey=SmartFit_API
+                      -Dsonar.sources=./app/
+                      -Dsonar.inclusions=**/*.php
+                      -Dsonar.login=$${SONAR_TOKEN} 
+                      -Dsonar.language=php 
+                      -Dsonar.host.url=https://codefirst.iut.uca.fr/sonar
+    depends_on: [build_api_image]
+    
+  - name: deploy_api_image
+    image: hub.codefirst.iut.uca.fr/thomas.bellembois/codefirst-dockerproxy-clientdrone:latest
+    environment:
+      IMAGENAME: hub.codefirst.iut.uca.fr/remi.arnal/smartfit_api:latest
+      CONTAINERNAME: smartfit_api
+      COMMAND: create
+      OVERWRITE: true
+      CODEFIRST_CLIENTDRONE_ENV_SMDB_HOST: SmartFit-smartfit_db
+      CODEFIRST_CLIENTDRONE_ENV_SMDB_DATABASE:
+        from_secret: db_database
+      CODEFIRST_CLIENTDRONE_ENV_SMDB_USER:
+        from_secret: db_user
+      CODEFIRST_CLIENTDRONE_ENV_SMDB_PASSWORD:
+        from_secret: db_password
+      CODEFIRST_CLIENTDRONE_ENV_ROOT_PASSWORD:
+        from_secret: db_root_password
+      ADMINS: remiarnal,enzojolys,othmanebenjelloun
+    depends_on: [ build_api_image ]
+
+  - name: deploy_database_image
+    image: hub.codefirst.iut.uca.fr/thomas.bellembois/codefirst-dockerproxy-clientdrone:latest
+    environment:
+      IMAGENAME: mariadb:11.1.2
+      CONTAINERNAME: smartfit_db
+      PRIVATE : true
+      COMMAND: create
+      CODEFIRST_CLIENTDRONE_ENV_MARIADB_ROOT_PASSWORD:
+        from_secret: db_root_password
+      CODEFIRST_CLIENTDRONE_ENV_MARIADB_DATABASE:
+        from_secret: db_database
+      CODEFIRST_CLIENTDRONE_ENV_MARIADB_USER:
+        from_secret: db_user
+      CODEFIRST_CLIENTDRONE_ENV_MARIADB_PASSWORD:
+        from_secret: db_password
+      ADMINS: remiarnal,enzojolys,othmanebenjelloun
+    depends_on: [ deploy_api_image ]
