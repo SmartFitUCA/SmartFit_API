@@ -31,7 +31,7 @@ steps:
                       -Dsonar.login=$${SONAR_TOKEN} 
                       -Dsonar.language=php 
                       -Dsonar.host.url=https://codefirst.iut.uca.fr/sonar
-    depends-on: [build_api_image]
+    depends_on: [build_api_image]
     
   - name: deploy_api_image
     image: hub.codefirst.iut.uca.fr/thomas.bellembois/codefirst-dockerproxy-clientdrone:latest
