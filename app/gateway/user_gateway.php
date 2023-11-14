@@ -6,8 +6,6 @@ use PDOException;
 use PDO;
 use Config\Token;
 
-use function PHPUnit\Framework\isEmpty;
-
 class UserGateway {
     private Connection $con;
     private Token $token;

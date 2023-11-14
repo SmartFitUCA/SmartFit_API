@@ -35,6 +35,8 @@ class DatabaseInit {
                     id UUID PRIMARY KEY,
                     user_id UUID REFERENCES `user`(`id`) ON DELETE CASCADE,
                     filename VARCHAR(100) DEFAULT CURDATE(),
+                    category VARCHAR(50),
+                    creation_date DATETIME,
                     import_date DATE);';
 
         $this->con->executeQuery($query);

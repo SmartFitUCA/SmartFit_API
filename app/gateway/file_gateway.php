@@ -16,12 +16,14 @@ class FileGateway {
         }
     }
 
-    public function createFile(string $filename, string $user_uuid) {
-        $query = "INSERT INTO file VALUES(UUID(), :user_uuid, :filename, CURDATE());";
+    public function createFile(string $filename, string $user_uuid, string $category, string $creation_date) {
+        $query = "INSERT INTO file VALUES(UUID(), :user_uuid, :filename, :category, :creation_date ,CURDATE());";
         try {
             $this->con->executeQuery($query, array(
+                ':user_uuid' => array($user_uuid, PDO::PARAM_STR),
                 ':filename' => array($filename, PDO::PARAM_STR),
-                ':user_uuid' => array($user_uuid, PDO::PARAM_STR)
+                ':category' => array($category, PDO::PARAM_STR),
+                ':creation_date' => array($creation_date, PDO::PARAM_STR)
             ));
         } catch (PDOException $e) {
             return -1;
@@ -61,7 +63,7 @@ class FileGateway {
     }
 
     public function listFiles(string $user_uuid) {
-        $query = "SELECT f.id, f.filename FROM file f, user u WHERE f.user_id=u.id and u.id=:user_uuid;";
+        $query = "SELECT f.id, f.filename, f.category, f.creation_date FROM file f, user u WHERE f.user_id=u.id and u.id=:user_uuid;";
         try {
             $this->con->executeQuery($query, array(
                 ':user_uuid' => array($user_uuid, PDO::PARAM_STR)
@@ -76,6 +78,8 @@ class FileGateway {
             $rows[] = [
                 'uuid' => $row['id'],
                 'filename' => $row['filename'],
+                'category' => $row['category'],
+                'creation_date' => $row['creation_date']
             ];
         }
         

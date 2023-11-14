@@ -225,9 +225,12 @@ return function (App $app) {
         
         $uuid = (new Token)->getUuidFromToken($token);
         $file = $req->getUploadedFiles()['file'];
+        $category = $req->getParsedBody()['SmartFit_Category'];
+        $creation_date = $req->getParsedBody()['SmartFit_Date'];
         $filename = $file->getClientFilename();
+        
         $code = (new FileGateway)->listFiles($uuid);
-        if(in_array($filename, $code, false)) return $res->withStatus(409);
+        if(array_search($filename, array_column($code, 'filename'), false) !== false) return $res->withStatus(409);
         
         $file_save_folder = $save_folder.'/'.$uuid.'/';
         if(!is_dir($file_save_folder)) {
@@ -235,8 +238,9 @@ return function (App $app) {
         }   
         $file->moveTo($file_save_folder.'/'.$filename);
         
-        $code = (new FileGateway)->createFile($filename, $uuid);
+        $code = (new FileGateway)->createFile($filename, $uuid, $category, $creation_date);
         if($code === -1) return $res->withStatus(500);
+        
         return $res->withStatus(200);
     });
 
