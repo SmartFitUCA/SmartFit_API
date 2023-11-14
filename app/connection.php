@@ -1,9 +1,12 @@
 <?php
+
 namespace Config;
+
 use PDO;
 use PDOStatement;
 
-class Connection extends PDO{
+class Connection extends PDO
+{
     private PDOStatement $stmt;
 
     public function __construct(string $dsn, string $username, string $password)
