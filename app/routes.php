@@ -119,8 +119,7 @@ return function (App $app) {
             return $res->withStatus(401);
         }
 
-        $body = $req->getParsedBody();
-        if (!isset($body['email'])) {
+        if (!Helpers::validJson((string) $req->getBody(), array("email"))) {
             return $res->withStatus(400);
         }
         $new_email = $req->getParsedBody()['email'];
@@ -137,12 +136,11 @@ return function (App $app) {
         if (!(new Token)->verifyToken($token)) {
             return $res->withStatus(401);
         }
-        $body = $req->getParsedBody();
-        if (!isset($body['username'])) {
+
+        if (!Helpers::validJson((string) $req->getBody(), array("username"))) {
             return $res->withStatus(400);
         }
         $new_username = $req->getParsedBody()['username'];
-
 
         $uuid = (new Token)->getUuidFromToken($token);
         $code = (new UserGateway)->updateUsername($uuid, $new_username);
