@@ -5,6 +5,7 @@ require_once "gateway/user_gateway.php";
 require_once "gateway/file_gateway.php";
 require_once "database_con.php";
 require_once "token.php";
+require_once "helpers.php";
 
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Headers: Access-Control-Allow-Origin, X-Requested-With, Content-Type, Accept, Origin, Authorization");
@@ -40,10 +41,11 @@ return function (App $app) {
     #### ACCOUNT ####
     // Create User 
     $app->post('/user', function (Request $req, Response $res) {
-        $req_body = $req->getParsedBody();
-        if (!array_key_exists('email', $req_body) || !array_key_exists('hash', $req_body) || !array_key_exists('username', $req_body)) {
+        if (!Helpers::validJson((string) $req->getBody(), array("email", "hash", "username"))) {
             return $res->withStatus(400);
         }
+
+        $req_body = $req->getParsedBody();
         $code = (new UserGateway)->createUser($req_body['email'], $req_body['hash'], $req_body['username']);
         if ($code === -1) return $res->withStatus(409);
 
