@@ -31,11 +31,14 @@ class Token
     }
 
     // Verify the JWT authenticity
-    public function verifyToken(string $jwt): bool
+    public function verifyToken(array $authorization_header): bool
     {
+        if(count($authorization_header) === 0) return false;
+        $jwt = $authorization_header[0];
+        
         try {
             JWT::decode($jwt, new Key($this->key, 'HS256'));
-        } catch (Exception $e) {
+        } catch (Exception) {
             return false;
         }
         return true;

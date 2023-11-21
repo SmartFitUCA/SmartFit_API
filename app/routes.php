@@ -55,11 +55,11 @@ return function (App $app) {
 
     // Delete User 
     $app->delete('/user', function (Request $req, Response $res) {
-        $token = $req->getHeader('Authorization')[0];
-        if (!(new Token)->verifyToken($token)) {
+        if (!(new Token)->verifyToken($req->getHeader('Authorization'))) {
             return $res->withStatus(401);
         }
-
+        $token = $req->getHeader('Authorization')[0];
+        
         $uuid = (new Token)->getUuidFromToken($token);
         $code = (new UserGateway)->deleteUser($uuid);
 
@@ -94,10 +94,10 @@ return function (App $app) {
     });
 
     $app->get('/user/info', function (Request $req, Response $res) {
-        $token = $req->getHeader('Authorization')[0];
-        if (!(new Token)->verifyToken($token)) {
+        if (!(new Token)->verifyToken($req->getHeader('Authorization'))) {
             return $res->withStatus(401);
         }
+        $token = $req->getHeader('Authorization')[0];
 
         $uuid = (new Token)->getUuidFromToken($token);
         $code = (new UserGateway)->getInfo($uuid);
@@ -114,10 +114,10 @@ return function (App $app) {
 
     // Update Mail
     $app->put('/user/email', function (Request $req, Response $res) {
-        $token = $req->getHeader('Authorization')[0];
-        if (!(new Token)->verifyToken($token)) {
+        if (!(new Token)->verifyToken($req->getHeader('Authorization'))) {
             return $res->withStatus(401);
         }
+        $token = $req->getHeader('Authorization')[0];
 
         if (!Helpers::validJson((string) $req->getBody(), array("email"))) {
             return $res->withStatus(400);
@@ -132,10 +132,10 @@ return function (App $app) {
 
     // Update Username
     $app->put('/user/username', function (Request $req, Response $res) {
-        $token = $req->getHeader('Authorization')[0];
-        if (!(new Token)->verifyToken($token)) {
+        if (!(new Token)->verifyToken($req->getHeader('Authorization'))) {
             return $res->withStatus(401);
         }
+        $token = $req->getHeader('Authorization')[0];
 
         if (!Helpers::validJson((string) $req->getBody(), array("username"))) {
             return $res->withStatus(400);
@@ -151,10 +151,10 @@ return function (App $app) {
     
     // Update Password
     $app->put('/user/password', function (Request $req, Response $res) {
-        $token = $req->getHeader('Authorization')[0];
-        if (!(new Token)->verifyToken($token)) {
+        if (!(new Token)->verifyToken($req->getHeader('Authorization'))) {
             return $res->withStatus(401);
         }
+        $token = $req->getHeader('Authorization')[0];
 
         if (!Helpers::validJson((string) $req->getBody(), array("hash"))) {
             return $res->withStatus(400);
@@ -170,11 +170,11 @@ return function (App $app) {
     #### FILES ####
     // Get list of files     
     $app->get('/user/files', function (Request $req, Response $res) {
-        $token = $req->getHeader('Authorization')[0];
         $save_folder = '/home/hel/smartfit_hdd';
-        if (!(new Token)->verifyToken($token)) {
+        if (!(new Token)->verifyToken($req->getHeader('Authorization'))) {
             return $res->withStatus(401);
         }
+        $token = $req->getHeader('Authorization')[0];
 
         $uuid = (new Token)->getUuidFromToken($token);
         $code = (new FileGateway)->listFiles($uuid);
@@ -185,12 +185,12 @@ return function (App $app) {
 
     // Get file
     $app->get('/user/files/{uuid}', function (Request $req, Response $res, $args) {
-        $token = $req->getHeader('Authorization')[0];
         $file_uuid = $args['uuid'];
         $save_folder = '/home/hel/smartfit_hdd';
-        if (!(new Token)->verifyToken($token)) {
+        if (!(new Token)->verifyToken($req->getHeader('Authorization'))) {
             return $res->withStatus(401);
         }
+        $token = $req->getHeader('Authorization')[0];
 
         $user_uuid = (new Token)->getUuidFromToken($token);
         $filename = (new FileGateway)->getFilename($file_uuid, $user_uuid);
@@ -208,12 +208,12 @@ return function (App $app) {
 
     // Delete file
     $app->delete('/user/files/{uuid}', function (Request $req, Response $res, $args) {
-        $token = $req->getHeader('Authorization')[0];
         $file_uuid = $args['uuid'];
         $save_folder = '/home/hel/smartfit_hdd';
-        if (!(new Token)->verifyToken($token)) {
+        if (!(new Token)->verifyToken($req->getHeader('Authorization'))) {
             return $res->withStatus(401);
         }
+        $token = $req->getHeader('Authorization')[0];
 
         $user_uuid = (new Token)->getUuidFromToken($token);
         $filename = (new FileGateway)->getFilename($file_uuid, $user_uuid);
@@ -237,13 +237,13 @@ return function (App $app) {
     // Upload file
     #file_put_contents("test_save_upload.bin", $file->getStream()->getContents());
     $app->post('/user/files', function (Request $req, Response $res) {
-        $token = $req->getHeader('Authorization')[0];
         $save_folder = '/home/hel/smartfit_hdd';
-        if (!(new Token)->verifyToken($token)) {
+        if (!(new Token)->verifyToken($req->getHeader('Authorization'))) {
             return $res->withStatus(401);
         }
-
+        $token = $req->getHeader('Authorization')[0];
         $uuid = (new Token)->getUuidFromToken($token);
+        
         $file = $req->getUploadedFiles()['file'];
         $category = $req->getParsedBody()['SmartFit_Category'];
         $creation_date = $req->getParsedBody()['SmartFit_Date'];
