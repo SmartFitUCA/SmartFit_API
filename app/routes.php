@@ -15,7 +15,7 @@ header("Access-Control-Allow-Credentials: true");
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\App;
-use SLim\Exception\HttpNotFoundException;
+use Slim\Exception\HttpNotFoundException;
 use gateway\UserGateway;
 use Config\Token;
 use Gateway\FileGateway;
@@ -144,6 +144,25 @@ return function (App $app) {
 
         $uuid = (new Token)->getUuidFromToken($token);
         $code = (new UserGateway)->updateUsername($uuid, $new_username);
+        if ($code === -1) return $res->withStatus(500);
+        return $res->withStatus(200);
+    });
+
+    
+    // Update Password
+    $app->put('/user/password', function (Request $req, Response $res) {
+        $token = $req->getHeader('Authorization')[0];
+        if (!(new Token)->verifyToken($token)) {
+            return $res->withStatus(401);
+        }
+
+        if (!Helpers::validJson((string) $req->getBody(), array("hash"))) {
+            return $res->withStatus(400);
+        }
+        $new_hash = $req->getParsedBody()['hash'];
+
+        $uuid = (new Token)->getUuidFromToken($token);
+        $code = (new UserGateway)->updatePassword($uuid, $new_hash);
         if ($code === -1) return $res->withStatus(500);
         return $res->withStatus(200);
     });

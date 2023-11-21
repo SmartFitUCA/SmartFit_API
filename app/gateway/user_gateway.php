@@ -115,7 +115,22 @@ class UserGateway
                 ':new_username' => array($new_username, PDO::PARAM_STR),
                 ':uuid' => array($uuid, PDO::PARAM_STR)
             ));
-        } catch (PDOException $e) {
+        } catch (PDOException) {
+            return -1;
+        }
+
+        return 0;
+    }
+
+    public function updatePassword(string $uuid, string $new_hash)
+    {
+        $query = "UPDATE user SET hash=:new_hash WHERE id=:uuid;";
+        try {
+            $this->con->executeQuery($query, array(
+                ':new_hash' => array($new_hash, PDO::PARAM_STR),
+                ':uuid' => array($uuid, PDO::PARAM_STR)
+            ));
+        } catch (PDOException) {
             return -1;
         }
 
