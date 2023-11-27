@@ -156,10 +156,10 @@ return function (App $app) {
         }
         $token = $req->getHeader('Authorization')[0];
 
-        if (!Helpers::validJson((string) $req->getBody(), array("hash"))) {
+        if (!Helpers::validJson((string) $req->getBody(), array("password"))) {
             return $res->withStatus(400);
         }
-        $new_hash = $req->getParsedBody()['hash'];
+        $new_hash = $req->getParsedBody()['password'];
 
         $uuid = (new Token)->getUuidFromToken($token);
         $code = (new UserGateway)->updatePassword($uuid, $new_hash);
