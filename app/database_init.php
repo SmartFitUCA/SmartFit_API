@@ -12,7 +12,7 @@ class DatabaseInit
 
     public function __construct()
     {
-        if (getenv("IS_DB_INIT") === false) {
+        //if (getenv("IS_DB_INIT") === false) {
             try {
                 $this->con = (new DatabaseCon)->connect();
                 $this->createUserTable();
@@ -20,8 +20,8 @@ class DatabaseInit
             } catch (PDOException $e) {
                 throw new PDOException($e->getMessage(), $e->getCode(), $e);
             }
-            putenv("IS_DB_INIT=true");
-        }
+          //  putenv("IS_DB_INIT=true");
+        //}
     }
 
     private function createUserTable()
@@ -41,10 +41,10 @@ class DatabaseInit
         $query = 'CREATE TABLE IF NOT EXISTS file (
                     id UUID PRIMARY KEY,
                     user_id UUID REFERENCES `user`(`id`) ON DELETE CASCADE,
-                    filename VARCHAR(100) DEFAULT CURDATE(),
+                    filename VARCHAR(100),
                     category VARCHAR(50),
                     creation_date DATETIME,
-                    import_date DATE);';
+                    info VARCHAR(1000));';
 
         $this->con->executeQuery($query);
     }

@@ -170,7 +170,6 @@ return function (App $app) {
     #### FILES ####
     // Get list of files     
     $app->get('/user/files', function (Request $req, Response $res) {
-        $save_folder = '/home/hel/smartfit_hdd';
         if (!(new Token)->verifyToken($req->getHeader('Authorization'))) {
             return $res->withStatus(401);
         }
@@ -245,6 +244,8 @@ return function (App $app) {
         $uuid = (new Token)->getUuidFromToken($token);
         
         $file = $req->getUploadedFiles()['file'];
+        
+        $info = $req->getParsedBody()['info'];
         $category = $req->getParsedBody()['SmartFit_Category'];
         $creation_date = $req->getParsedBody()['SmartFit_Date'];
         $filename = $file->getClientFilename();
@@ -258,7 +259,7 @@ return function (App $app) {
         }
         $file->moveTo($file_save_folder . '/' . $filename);
 
-        $code = (new FileGateway)->createFile($filename, $uuid, $category, $creation_date);
+        $code = (new FileGateway)->createFile($filename, $uuid, $category, $creation_date, $info);
         if ($code === -1) return $res->withStatus(500);
 
         return $res->withStatus(200);

@@ -20,17 +20,18 @@ class FileGateway
         }
     }
 
-    public function createFile(string $filename, string $user_uuid, string $category, string $creation_date)
+    public function createFile(string $filename, string $user_uuid, string $category, string $creation_date, string $infoAsJson)
     {
-        $query = "INSERT INTO file VALUES(UUID(), :user_uuid, :filename, :category, :creation_date ,CURDATE());";
+        $query = "INSERT INTO file VALUES(UUID(), :user_uuid, :filename, :category, :creation_date , :info);";
         try {
             $this->con->executeQuery($query, array(
                 ':user_uuid' => array($user_uuid, PDO::PARAM_STR),
                 ':filename' => array($filename, PDO::PARAM_STR),
                 ':category' => array($category, PDO::PARAM_STR),
-                ':creation_date' => array($creation_date, PDO::PARAM_STR)
+                ':creation_date' => array($creation_date, PDO::PARAM_STR),
+                ':info' => array($infoAsJson, PDO::PARAM_STR)
             ));
-        } catch (PDOException $e) {
+        } catch (PDOException) {
             return -1;
         }
 
@@ -45,7 +46,7 @@ class FileGateway
             $this->con->executeQuery($query, array(
                 ':file_uuid' => array($file_uuid, PDO::PARAM_STR)
             ));
-        } catch (PDOException $e) {
+        } catch (PDOException) {
             return -1;
         }
 
@@ -71,13 +72,13 @@ class FileGateway
 
     public function listFiles(string $user_uuid)
     {
-        $query = "SELECT f.id, f.filename, f.category, f.creation_date FROM file f, user u WHERE f.user_id=u.id and u.id=:user_uuid;";
+        $query = "SELECT f.id, f.filename, f.category, f.creation_date, f.info FROM file f, user u WHERE f.user_id=u.id and u.id=:user_uuid;";
         try {
             $this->con->executeQuery($query, array(
                 ':user_uuid' => array($user_uuid, PDO::PARAM_STR)
             ));
             $results = $this->con->getResults();
-        } catch (PDOException $e) {
+        } catch (PDOException) {
             return -1;
         }
 
@@ -87,7 +88,8 @@ class FileGateway
                 'uuid' => $row['id'],
                 'filename' => $row['filename'],
                 'category' => $row['category'],
-                'creation_date' => $row['creation_date']
+                'creation_date' => $row['creation_date'],
+                'info' => json_decode($row['info'])
             ];
         }
 
