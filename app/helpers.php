@@ -28,4 +28,13 @@ class Helpers
 
         return true;
     }
+
+    static public function isUUID(string $uuid)
+    {
+        if (!is_string($uuid) || (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/', $uuid) !== 1)) {
+            return false;
+        }
+
+        return true;
+    }
 }

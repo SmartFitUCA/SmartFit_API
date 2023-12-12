@@ -4,8 +4,10 @@ namespace Gateway;
 
 use Config\DatabaseCon;
 use Config\Connection;
+use Error;
 use PDOException;
-use PhpParser\Node\Arg;
+use PDO;
+use PDORow;
 
 class AiGateway
 {
@@ -90,8 +92,83 @@ class AiGateway
 		return $json;
 	}
 
+	public function addModel(string $user_uuid, string $category, string $model)
+	{
+		$res_exists = $this->checkIfCategoryExists($user_uuid, $category, $model);
+
+		if ($res_exists === 1) {
+			$code = $this->insertModel($user_uuid, $category, $model);
+		} else if ($res_exists === 0) {
+			$code = $this->updateModel($user_uuid, $category, $model);
+		} else {
+			return -1;
+		}
+
+		if ($code === -1) return -1;
+		return 0;
+	}
+
 	public function insertModel(string $user_uuid, string $category, string $model)
 	{
+		error_log("INSERT SQL");
+		error_log($user_uuid);
+		error_log($category);
+		error_log($model);
+		$query = "INSERT INTO trained_model VALUES(null, :user_uuid, :category, :model);";
+
+		try {
+			$this->con->executeQuery($query, array(
+				':user_uuid' => array($user_uuid, PDO::PARAM_STR),
+				':category' => array($category, PDO::PARAM_STR),
+				':model' => array($model, PDO::PARAM_STR)
+			));
+		} catch (PDOException) {
+			return -1;
+		}
+		return 0;
+	}
+
+	public function updateModel(string $user_uuid, string $category, string $model)
+	{
+		$query = "UPDATE trained_model SET model = :model WHERE user_id = :user_uuid and category = :category;";
+
+		try {
+			$this->con->executeQuery($query, array(
+				':user_uuid' => array($user_uuid, PDO::PARAM_STR),
+				':category' => array($category, PDO::PARAM_STR),
+				':model' => array($model, PDO::PARAM_STR)
+			));
+		} catch (PDOException) {
+			return -1;
+		}
+
+		return 0;
+	}
+
+	public function checkIfCategoryExists(string $user_uuid, string $category)
+	{
+		$query = "SELECT category FROM trained_model WHERE category = :category and user_id = :user_uuid;";
+		error_log("CHECK SQL");
+		error_log($user_uuid);
+		error_log($category);
+		try {
+			error_log("AAAAAH");
+			$this->con->executeQuery($query, array(
+				':user_uuid' => array($user_uuid, PDO::PARAM_STR),
+				':category' => array($category, PDO::PARAM_STR)
+			));
+			error_log("BBBBBH");
+			$results = $this->con->getResults();
+		} catch (PDOException) {
+			return -1;
+		}
+
+		error_log("AFTER CHECK SQL");
+
+		if (count($results) === 0) {
+			return 1;
+		}
+
 		return 0;
 	}
 }
