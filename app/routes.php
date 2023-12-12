@@ -3,6 +3,7 @@
 declare(strict_types=1);
 require_once "gateway/user_gateway.php";
 require_once "gateway/file_gateway.php";
+require_once "gateway/ai_gateway.php";
 require_once "database_con.php";
 require_once "token.php";
 require_once "helpers.php";
@@ -16,9 +17,10 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\App;
 use Slim\Exception\HttpNotFoundException;
-use gateway\UserGateway;
-use Config\Token;
+use Gateway\UserGateway;
+use Gateway\AiGateway;
 use Gateway\FileGateway;
+use Config\Token;
 
 return function (App $app) {
     $app->options('/{routes:.+}', function ($request, $response, $args) {
@@ -263,6 +265,22 @@ return function (App $app) {
         if ($code === -1) return $res->withStatus(500);
 
         return $res->withStatus(200);
+    });
+
+    // ===== IA =====
+    $app->get('/ai/data', function(Request $req, Response $res) {
+       // TODO: Authentication python server
+        $json = (new AiGateway)->getUsersCategoryAndInfo();
+        $res = $res->withHeader('Content-type','application/json');
+        $res->getBody()->write($json);
+        return $res;
+    });
+
+    $app->post('/ai/data', function(Request $req, Response $res) {
+        // TODO: Authentication python server
+        // Check uuid, category, model in json
+        
+        return $res; 
     });
 
     $app->map(['GET', 'POST', 'PUT', 'DELETE', 'PATCH'], '/{routes:.+}', function ($request, $response) {
