@@ -17,6 +17,7 @@ class DatabaseInit
                 $this->con = (new DatabaseCon)->connect();
                 $this->createUserTable();
                 $this->createFileTable();
+                $this->createTrainedModelTable();
             } catch (PDOException $e) {
                 throw new PDOException($e->getMessage(), $e->getCode(), $e);
             }
@@ -45,6 +46,16 @@ class DatabaseInit
                     category VARCHAR(50),
                     creation_date DATETIME,
                     info VARCHAR(1000));';
+
+        $this->con->executeQuery($query);
+    }
+
+    private function createTrainedModelTable() {
+        $query = 'CREATE TABLE IF NOT EXISTS trained_model (
+                    id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                    user_id UUID REFERENCES `user`(`id`) ON DELETE CASCADE,
+                    category VARCHAR(50),
+                    model VARCHAR(1000));';
 
         $this->con->executeQuery($query);
     }
