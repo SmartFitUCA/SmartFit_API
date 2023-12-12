@@ -61,7 +61,7 @@ return function (App $app) {
             return $res->withStatus(401);
         }
         $token = $req->getHeader('Authorization')[0];
-        
+
         $uuid = (new Token)->getUuidFromToken($token);
         $code = (new UserGateway)->deleteUser($uuid);
 
@@ -150,7 +150,7 @@ return function (App $app) {
         return $res->withStatus(200);
     });
 
-    
+
     // Update Password
     $app->put('/user/password', function (Request $req, Response $res) {
         if (!(new Token)->verifyToken($req->getHeader('Authorization'))) {
@@ -244,9 +244,9 @@ return function (App $app) {
         }
         $token = $req->getHeader('Authorization')[0];
         $uuid = (new Token)->getUuidFromToken($token);
-        
+
         $file = $req->getUploadedFiles()['file'];
-        
+
         $info = $req->getParsedBody()['info'];
         $category = $req->getParsedBody()['SmartFit_Category'];
         $creation_date = $req->getParsedBody()['SmartFit_Date'];
@@ -268,19 +268,30 @@ return function (App $app) {
     });
 
     // ===== IA =====
-    $app->get('/ai/data', function(Request $req, Response $res) {
-       // TODO: Authentication python server
+    $app->get('/ai/data', function (Request $req, Response $res) {
+        // TODO: Authentication python server
         $json = (new AiGateway)->getUsersCategoryAndInfo();
-        $res = $res->withHeader('Content-type','application/json');
+        $res = $res->withHeader('Content-type', 'application/json');
         $res->getBody()->write($json);
         return $res;
     });
 
-    $app->post('/ai/data', function(Request $req, Response $res) {
+    $app->post('/ai/data', function (Request $req, Response $res) {
         // TODO: Authentication python server
         // Check uuid, category, model in json
+
+        if (!Helpers::validJson((string) $req->getBody(), array("uuid", "category", "model"))) {
+            return $res->withStatus(400);
+        }
+
+        $req_body = $req->getParsedBody();
+
+        if(!Helpers::isUUID($req_body['uuid'])) return $res->withStatus(400);
         
-        return $res; 
+        $code = (new AiGateway)->addModel($req_body['uuid'], $req_body['category'], $req_body['model']);
+        if($code === -1) return $res->withStatus(500);
+        
+        return $res->withStatus(200);
     });
 
     $app->map(['GET', 'POST', 'PUT', 'DELETE', 'PATCH'], '/{routes:.+}', function ($request, $response) {
