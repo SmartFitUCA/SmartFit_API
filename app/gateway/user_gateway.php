@@ -92,6 +92,23 @@ class UserGateway
         return ["email" => $results[0]['email'], "username" => $results[0]['username']];
     }
 
+    public function getModelByCategory(string $uuid, string $category)
+    {
+        $query = "SELECT model FROM trained_model WHERE user_id = :user_uuid and category = LOWER(:category);";
+        try {
+            $this->con->executeQuery($query, array(
+                ':user_uuid' => array($uuid, PDO::PARAM_STR),
+                ':category' => array($category, PDO::PARAM_STR)
+            ));
+            $results = $this->con->getResults();
+        } catch (PDOException) {
+            return -1;
+        }
+        if (count($results) === 0) return  1;
+
+        return ["model" => $results[0]['model']];
+    }
+
     public function updateMail(string $uuid, string $new_email)
     {
         $query = "UPDATE user SET email=:new_email WHERE id=:uuid;";
