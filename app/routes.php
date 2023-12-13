@@ -40,7 +40,7 @@ return function (App $app) {
         return $res;
     });
 
-    #### ACCOUNT ####
+    // ===== ACCOUNT =====
     // Create User 
     $app->post('/user', function (Request $req, Response $res) {
         if (!Helpers::validJson((string) $req->getBody(), array("email", "hash", "username"))) {
@@ -112,6 +112,23 @@ return function (App $app) {
 
         $res->getBody()->write(json_encode($code));
         return $res;
+    });
+
+    $app->get('/user/ai/{category}', function(Request $req, Response $res, $args) {
+        if (!(new Token)->verifyToken($req->getHeader('Authorization'))) {
+            return $res->withStatus(401);
+        }       
+        $token = $req->getHeader('Authorization')[0];
+        $category = $args['category'];
+
+        $uuid = (new Token)->getUuidFromToken($token);
+        $code = (new UserGateway)->getModelByCategory($uuid, $category);
+        
+        if($code === -1) return $res->withStatus(500);
+        else if($code === 1) return $res->withStatus(404);
+
+        $res->getBody()->write(json_encode($code));
+        return $res->withStatus(200);
     });
 
     // Update Mail
